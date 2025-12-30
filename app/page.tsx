@@ -16,13 +16,22 @@ export default function EmployeesPage() {
 	const [department, setDepartment] = useState('');
 
 	const { employees, loading } = useEmployees({ page, limit, search, department });
+	const [nEmployees, setnEmployees] = useState(employees);
 
 	useEffect(() => {
 		setPage(1);
 	}, [search, department]);
 
+	useEffect(() => {
+		setnEmployees(employees);
+	}, [employees]);
+
 	const handleStatusToggle = async (employeeId: string, currentStatus: 'ACTIVE' | 'INACTIVE') => {
 		const newStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+
+		setnEmployees((prevEmployees) =>
+			prevEmployees.map((employee) => (employee.id === employeeId ? { ...employee, status: newStatus } : employee))
+		);
 
 		try {
 			const response = await fetch('/api/employees', {
@@ -107,14 +116,14 @@ export default function EmployeesPage() {
 									</TableCell>
 								</TableRow>
 							))
-						) : employees.length === 0 ? (
+						) : nEmployees.length === 0 ? (
 							<TableRow>
 								<TableCell colSpan={6} className='h-24 text-center'>
 									No results.
 								</TableCell>
 							</TableRow>
 						) : (
-							employees.map((employee) => (
+							nEmployees.map((employee) => (
 								<TableRow key={employee.id}>
 									<TableCell>{employee.name}</TableCell>
 									<TableCell>{employee.email}</TableCell>
